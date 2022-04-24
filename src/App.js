@@ -1,24 +1,54 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import { Routes, Route} from "react-router-dom";
+import { ErrorBoundary } from "react-error-boundary";
+import Home from "./components/Home";
+import Navbar from "./components/Navbar";
+import Pokemon from "./components/Pokemon";
+import PokemonDetail from "./components/PokemonDetail";
+import NoPage from "./components/NoPage";
+
+function ErrorHandler({error}) {
+  return (
+    <div role="alert">
+      <p>An error occurred:</p>
+      <pre>{error.message}</pre>
+    </div>
+  )
+}
 
 function App() {
+  const [errorFetch, setErrorFetch] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    fetch("https://pokeapi.co/api/v2/pokemon")
+      .then(res => res.json())
+      .then(
+        (result) => {
+          setIsLoaded(true);
+          setItems(result.results);
+        },
+        (error) => {
+          setIsLoaded(true);
+          setErrorFetch(error);
+        }
+      )
+  }, [])
+
+  console.log(items)
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    // Simulasi untuk melihat keberhasilan ErrorBoundary dapat dilihat dengan
+    // melakukan pengubahan props items menjadi item
+    <ErrorBoundary FallbackComponent={ErrorHandler}>
+        <Navbar/>
+        <Routes>
+            <Route index element={<Home/>} />
+            <Route path="Pokemon" element={<Pokemon items={items} errorFetch={errorFetch}/>} />
+            <Route path="Pokemon/:name" element={<PokemonDetail />} />  
+            <Route path="*" element={<NoPage />} />
+        </Routes>
+    </ErrorBoundary>
   );
 }
 
